@@ -1,5 +1,5 @@
 import requests
-import pandas
+import pandas as pd
 import os
 from bs4 import BeautifulSoup
 
@@ -41,7 +41,10 @@ def download_target_file(target_url: str, saved_file_path: str):
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
 
-# def open_file_and_find_record():
+def find_highest_record(saved_file_path):
+    df = pd.read_csv(saved_file_path)
+    highest_HourlyDryBulbTemperature = df.nlargest(1,"HourlyDryBulbTemperature").to_dict(orient="records")
+    print(highest_HourlyDryBulbTemperature)
 
 # https://www.ncei.noaa.gov/data/local-climatological-data/access/2024/01001099999.csv
 
@@ -58,9 +61,15 @@ def main():
         os.makedirs(download_dir, exist_ok=True)
         saved_file_path = os.path.join(download_dir, target_file)
         download_target_file(target_url, saved_file_path)
+
+        # read file and get highest record
+        find_highest_record(saved_file_path)
+
     else:
         return None
-    # pass
+    pass
+    # find_highest_record("/Users/hoadoan/Coding/data-engineerig-practice/Exercises/Exercise-2/downloads/01002099999.csv")
+
 
 
 if __name__ == "__main__":
