@@ -30,7 +30,7 @@ async def check_uri_valid(session: aiohttp.ClientSession, uri: str):
         return False
 
 # create function to extract file to be conducted in separate thread while waiting for downloads
-def extract_and_del_file(zip_path: str, target_folder: str):
+def extract_and_del_file(zip_path: str):
     print(f"Unzipping {zip_path} into {download_dir}")
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         zip_ref.extractall(download_dir)
@@ -62,7 +62,7 @@ async def download_file(session: aiohttp.ClientSession, uri: str):
     target_folder = os.path.join(download_dir, os.path.splitext(filename)[0])
 
     loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, extract_and_del_file, zip_path, target_folder) # while different thread is extracting, CPU can do other things...
+    await loop.run_in_executor(None, extract_and_del_file, zip_path) # while different thread is extracting, CPU can do other things...
 
 async def main():
     async with aiohttp.ClientSession() as session:
