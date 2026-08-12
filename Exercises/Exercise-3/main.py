@@ -3,6 +3,7 @@ import os
 import zipfile
 import gzip
 import shutil
+import io
 
 s3 = boto3.resource('s3')
 my_bucket = s3.Bucket("commoncrawl")
@@ -34,6 +35,23 @@ def download_from_s3(s3_key: str):
     
     return extracted_file_path
 
+def download_from_s3_from_memory(s3_key: str):
+    # download into RAM by getting object
+    print(f"Extracting file from memory: {os.path.basename(s3_key)}")
+    s3_object = my_bucket.Object(s3_key)
+    compressed_data = s3_object.get()['Body'].read()
+
+    # virtual file in RAM
+    compressed_stream = io.BytesIO(compressed_data)
+
+    # unzip from memory
+    with gzip.GzipFile(fileobj=compressed_stream, mode="rb") as gz:
+        # stream data in memory instead of unzipping all to memory
+        uri = gz.readline().decode("utf-8").strip()
+    
+    return uri
+
+
 def read_from_file(extracted_file, line_to_read):
 
     with open(extracted_file, "r", encoding="utf-8") as file:
@@ -53,14 +71,21 @@ def read_from_file(extracted_file, line_to_read):
     return None
 
 def main():
-    extracted_file_path = download_from_s3(s3_key)
-    print(f"Extracted file: {extracted_file_path}")
+    # # Option 1: load file to hard drive
+    # extracted_file_path = download_from_s3(s3_key)
+    # print(f"Extracted file: {extracted_file_path}")
 
-    # download uri from first line of extracted file
-    uri = read_from_file(extracted_file_path, 1)
-    uri_file_path = download_from_s3(uri)
+    # # download uri from first line of extracted file
+    # uri = read_from_file(extracted_file_path, 1)
+    # uri_file_path = download_from_s3(uri)
 
-    read_from_file(uri_file_path, -1)
+    # read_from_file(uri_file_path, -1)
+
+    # Option 2: load file to memory
+    uri = download_from_s3_from_memory(s3_key)
+    print(f"Extracted this uri: {uri}")
+    uri_data = download_from_s3_from_memory(uri)
+    print(f"Extracted this uri: {uri_data}")
 
 
 if __name__ == "__main__":
