@@ -59,7 +59,7 @@ async def download_file(session: aiohttp.ClientSession, uri: str):
     print(f"Finished downloading {filename}...")
 
     # unzip the file in separate thread due to being CPU-heavy
-    target_folder = os.path.join(download_dir, os.path.splitext(filename)[0])
+    # target_folder = os.path.join(download_dir, os.path.splitext(filename)[0])
 
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, extract_and_del_file, zip_path) # while different thread is extracting, CPU can do other things...
